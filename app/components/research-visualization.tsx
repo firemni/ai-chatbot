@@ -1,6 +1,26 @@
+'use client';
+
 import { useEffect, useRef } from 'react';
-import { ResearchResult } from '../services/ResearchService';
 import * as d3 from 'd3';
+
+interface ResearchResult {
+  content: string;
+  sources: string[];
+  relatedTopics: string[];
+  confidence: number;
+  knowledgeGraph?: {
+    nodes: Array<{
+      id: string;
+      label: string;
+      type: 'concept' | 'fact' | 'source';
+    }>;
+    edges: Array<{
+      from: string;
+      to: string;
+      label: string;
+    }>;
+  };
+}
 
 interface ResearchVisualizationProps {
   research: ResearchResult;
@@ -62,7 +82,9 @@ export function ResearchVisualization({ research }: ResearchVisualizationProps) 
     // Create SVG elements
     const svg = d3.select(svgRef.current)
       .attr('width', width)
-      .attr('height', height);
+      .attr('height', height)
+      .attr('viewBox', [0, 0, width, height].join(' '))
+      .attr('class', 'bg-white dark:bg-gray-800 rounded-lg');
 
     // Create links
     const link = svg.selectAll('.link')
@@ -72,38 +94,34 @@ export function ResearchVisualization({ research }: ResearchVisualizationProps) 
       .attr('class', 'link');
 
     const lines = link.append('line')
-      .attr('class', 'graph-link')
-      .style('stroke', '#999')
-      .style('stroke-width', 1);
+      .attr('class', 'graph-link stroke-gray-300 dark:stroke-gray-600')
+      .attr('stroke-width', 1);
 
     const linkLabels = link.append('text')
-      .attr('class', 'graph-label')
-      .text(d => d.label)
-      .attr('font-size', '8px')
-      .attr('text-anchor', 'middle');
+      .attr('class', 'graph-label fill-gray-500 dark:fill-gray-400 text-xs')
+      .attr('text-anchor', 'middle')
+      .text(d => d.label);
 
     // Create nodes
     const node = svg.selectAll('.node')
       .data(nodes)
       .enter()
       .append('g')
-      .attr('class', 'node')
+      .attr('class', 'node cursor-pointer')
       .call(d3.drag<SVGGElement, SimNode>()
         .on('start', dragStarted)
         .on('drag', dragging)
         .on('end', dragEnded));
 
     node.append('circle')
-      .attr('class', 'graph-node')
       .attr('r', 5)
-      .style('fill', d => getNodeColor(d.type));
+      .attr('class', d => `fill-current ${getNodeColorClass(d.type)}`);
 
     node.append('text')
-      .text(d => d.label)
       .attr('x', 8)
       .attr('y', 3)
-      .attr('class', 'graph-node-label')
-      .style('font-size', '10px');
+      .attr('class', 'fill-current text-gray-700 dark:text-gray-300 text-sm')
+      .text(d => d.label);
 
     // Update positions on each tick
     simulation.on('tick', () => {
@@ -145,34 +163,31 @@ export function ResearchVisualization({ research }: ResearchVisualizationProps) 
   }, [research.knowledgeGraph]);
 
   return (
-    <div className="research-visualization">
-      <h3 className="text-lg font-bold mb-4">Research Results</h3>
-      
-      <div className="mb-4">
-        <h4 className="font-semibold">Summary</h4>
-        <p className="text-sm text-gray-700 dark:text-gray-300">
+    <div className="space-y-6">
+      <div>
+        <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">
+          Research Results
+        </h3>
+        <p className="text-gray-700 dark:text-gray-300">
           {research.content}
         </p>
       </div>
 
-      <div className="mb-4">
-        <h4 className="font-semibold">Knowledge Graph</h4>
-        <div className="border rounded-lg dark:border-gray-700 p-2 bg-white dark:bg-gray-800">
-          <svg ref={svgRef}></svg>
+      {research.knowledgeGraph && (
+        <div>
+          <h4 className="text-md font-semibold mb-2 text-gray-900 dark:text-white">
+            Knowledge Graph
+          </h4>
+          <div className="border rounded-lg dark:border-gray-700">
+            <svg ref={svgRef}></svg>
+          </div>
         </div>
-      </div>
+      )}
 
-      <div className="mb-4">
-        <h4 className="font-semibold">Sources</h4>
-        <ul className="text-sm list-disc list-inside text-gray-600 dark:text-gray-400">
-          {research.sources.map((source, index) => (
-            <li key={index}>{source}</li>
-          ))}
-        </ul>
-      </div>
-
-      <div className="mb-4">
-        <h4 className="font-semibold">Related Topics</h4>
+      <div>
+        <h4 className="text-md font-semibold mb-2 text-gray-900 dark:text-white">
+          Related Topics
+        </h4>
         <div className="flex flex-wrap gap-2">
           {research.relatedTopics.map((topic, index) => (
             <span
@@ -185,19 +200,30 @@ export function ResearchVisualization({ research }: ResearchVisualizationProps) 
           ))}
         </div>
       </div>
+
+      <div>
+        <h4 className="text-md font-semibold mb-2 text-gray-900 dark:text-white">
+          Sources
+        </h4>
+        <ul className="list-disc list-inside space-y-1 text-gray-600 dark:text-gray-400">
+          {research.sources.map((source, index) => (
+            <li key={index}>{source}</li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }
 
-function getNodeColor(type: 'concept' | 'fact' | 'source'): string {
+function getNodeColorClass(type: 'concept' | 'fact' | 'source'): string {
   switch (type) {
     case 'concept':
-      return '#4299e1'; // blue
+      return 'text-blue-500';
     case 'fact':
-      return '#48bb78'; // green
+      return 'text-green-500';
     case 'source':
-      return '#ed8936'; // orange
+      return 'text-orange-500';
     default:
-      return '#a0aec0'; // gray
+      return 'text-gray-500';
   }
 }

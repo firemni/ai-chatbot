@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@auth/core": "^0.34.2",
     "@types/d3": "^7.4.3",
     "@vercel/analytics": "^1.1.1",
     "ai": "^2.2.27",
@@ -16,6 +17,7 @@
     "clsx": "^2.0.0",
     "d3": "^7.9.0",
     "next": "^14.0.0",
+    "next-auth": "^4.24.11",
     "postcss": "^8.4.31",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

@@ -1,12 +1,14 @@
 import { useState, useCallback } from 'react';
-import { useChat } from './useChat';
-import { useResearch } from './useResearch';
-import { useResearchStore } from '../utils/research-store';
-import { getCachedQueries, findSimilarQueries } from '../utils/research-store';
 import { ModelType } from '../../../src/ai/models/model-factory';
+import { useResearch } from './useResearch';
 import { ResearchResult } from '../services/ResearchService';
 
-export interface ResearchChatOptions {
+interface Message {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+interface ResearchChatOptions {
   model: ModelType;
   autoResearch?: boolean;
   similarityThreshold?: number;
@@ -17,16 +19,11 @@ export function useResearchChat({
   autoResearch = true,
   similarityThreshold = 0.7,
 }: ResearchChatOptions) {
+  const [messages, setMessages] = useState<Message[]>([]);
   const [isResearching, setIsResearching] = useState(false);
-  const { messages, sendMessage, isLoading: isChatLoading } = useChat(model);
+  const [currentQuery, setCurrentQuery] = useState<string | null>(null);
+  const [selectedResult, setSelectedResult] = useState<ResearchResult | null>(null);
   const { performResearch, expandContext, isLoading: isResearchLoading } = useResearch();
-  const {
-    currentQuery,
-    selectedResult,
-    setCurrentQuery,
-    addResult,
-    selectResult,
-  } = useResearchStore();
 
   const shouldResearch = useCallback((content: string): boolean => {
     if (!autoResearch) return false;
@@ -40,30 +37,11 @@ export function useResearchChat({
   }, [autoResearch]);
 
   const enrichMessageWithResearch = useCallback(async (content: string): Promise<string> => {
-    // Check for similar cached queries first
-    const similarQueries = findSimilarQueries(content, similarityThreshold);
-    if (similarQueries.length > 0) {
-      // Use the most similar cached result
-      const mostSimilarQuery = similarQueries[0];
-      const cachedResult = useResearchStore.getState().results.get(mostSimilarQuery);
-      if (cachedResult) {
-        setCurrentQuery(mostSimilarQuery);
-        selectResult(cachedResult);
-        return content;
-      }
-    }
-
-    // Perform new research
     setIsResearching(true);
     try {
-      const researchResult: ResearchResult = await performResearch(content);
-      if (!researchResult) {
-        throw new Error('Research failed to return results');
-      }
-
+      const researchResult = await performResearch(content);
       setCurrentQuery(content);
-      addResult(content, researchResult);
-      selectResult(researchResult);
+      setSelectedResult(researchResult);
 
       // Enhance the message with research context
       const enhancedContent = await expandContext(content, researchResult.content);
@@ -74,24 +52,32 @@ export function useResearchChat({
     } finally {
       setIsResearching(false);
     }
-  }, [performResearch, expandContext, similarityThreshold, setCurrentQuery, selectResult, addResult]);
+  }, [performResearch, expandContext]);
 
-  const handleSendMessage = useCallback(async (content: string) => {
-    let enhancedContent = content;
-    
+  const sendMessage = useCallback(async (content: string) => {
+    // Add user message
+    const userMessage: Message = { role: 'user', content };
+    setMessages(prev => [...prev, userMessage]);
+
+    // Check if we should perform research
+    let assistantContent = content;
     if (shouldResearch(content)) {
-      enhancedContent = await enrichMessageWithResearch(content);
+      assistantContent = await enrichMessageWithResearch(content);
     }
 
-    await sendMessage(enhancedContent);
-  }, [sendMessage, shouldResearch, enrichMessageWithResearch]);
+    // Add assistant message
+    const assistantMessage: Message = {
+      role: 'assistant',
+      content: assistantContent,
+    };
+    setMessages(prev => [...prev, assistantMessage]);
+  }, [shouldResearch, enrichMessageWithResearch]);
 
   return {
     messages,
-    sendMessage: handleSendMessage,
-    isLoading: isChatLoading || isResearchLoading || isResearching,
+    sendMessage,
+    isLoading: isResearching || isResearchLoading,
     currentResearch: selectedResult,
     currentQuery,
-    cachedQueries: getCachedQueries(),
   };
 }

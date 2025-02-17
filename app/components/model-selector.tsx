@@ -1,4 +1,6 @@
-import { ModelType } from '../../../src/ai/models/model-factory';
+'use client';
+
+type ModelType = 'gemini' | 'openai' | 'openrouter';
 
 interface ModelSelectorProps {
   selectedModel: ModelType;

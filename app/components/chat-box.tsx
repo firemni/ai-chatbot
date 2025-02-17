@@ -1,5 +1,7 @@
+'use client';
+
 import { useState, useRef, useEffect } from 'react';
-import { SmallLoadingIndicator } from './LoadingIndicator';
+import { LoadingIndicator } from './loading-indicator';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -46,7 +48,7 @@ export function ChatBox({ messages, onSendMessage, isLoading }: ChatBoxProps) {
               className={`max-w-[80%] rounded-lg px-4 py-2 ${
                 message.role === 'user'
                   ? 'bg-blue-500 text-white'
-                  : 'bg-gray-100 dark:bg-gray-800'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
               }`}
             >
               <p className="whitespace-pre-wrap break-words">{message.content}</p>
@@ -79,7 +81,7 @@ export function ChatBox({ messages, onSendMessage, isLoading }: ChatBoxProps) {
                      disabled:opacity-50 disabled:cursor-not-allowed
                      transition-colors"
           >
-            {isLoading ? <SmallLoadingIndicator /> : 'Send'}
+            {isLoading ? <LoadingIndicator /> : 'Send'}
           </button>
         </div>
       </form>

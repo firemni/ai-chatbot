@@ -1,26 +1,26 @@
-import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
-import './globals.css'
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
+import './globals.css';
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Roo Code Boss Chat',
-  description: 'Multi-model AI chat interface for Roo Code Boss'
-}
+  title: 'Roo Code Boss Research Chat',
+  description: 'AI-powered research assistant with chat interface',
+};
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <html lang="en">
       <body className={inter.className}>
-        <main className="flex min-h-screen flex-col items-center justify-between p-24">
+        <div className="min-h-screen bg-white dark:bg-gray-900">
           {children}
-        </main>
+        </div>
       </body>
     </html>
-  )
+  );
 }
