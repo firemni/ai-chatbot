@@ -1,19 +1,15 @@
-import DeepResearch from 'deep-research';
+import { deepResearch } from '../lib/deep-research/deep-research';
 
-let deepResearchInstance: DeepResearch | null = null;
+let deepResearchInstance: any | null = null; // Keep 'any' for now
 
-export function initializeDeepResearch() {
+export async function initializeDeepResearch() {
   if (!deepResearchInstance) {
-    deepResearchInstance = new DeepResearch({
-      firecrawlKey: process.env.NEXT_PUBLIC_FIRECRAWL_KEY,
-      openAIKey: process.env.NEXT_PUBLIC_OPENAI_KEY,
-      openAIModel: process.env.NEXT_PUBLIC_OPENAI_MODEL || 'gpt-4-turbo-preview',
-      openAIEndpoint: process.env.NEXT_PUBLIC_OPENAI_ENDPOINT,
-      maxDepth: 3,
-      minConfidence: 0.7,
-      breadth: 4,
-      concurrencyLimit: 2,
-      timeout: 60000
+    // deepResearch is an async function, so we need to await it.
+    // We provide dummy values for query, breadth, and depth, as they are required.
+    deepResearchInstance = await deepResearch({
+      query: '',
+      breadth: 1,
+      depth: 1,
     });
   }
   return deepResearchInstance;

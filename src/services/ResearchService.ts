@@ -1,5 +1,5 @@
 import { Graph, SearchResult } from '../types/research';
-import { initializeDeepResearch } from './deep-research-init';
+import { getDeepResearch } from './deep-research-init';
 
 export interface ResearchResult {
   content: string;
@@ -21,11 +21,11 @@ export interface ResearchResult {
 }
 
 export class ResearchService {
-  private deepResearch: any; // Use 'any' temporarily
+  private deepResearch: any; // Keep 'any' temporarily
 
   constructor() {
-    // Initialize the DeepResearch instance
-    this.deepResearch = initializeDeepResearch();
+    // Get the initialized DeepResearch instance
+    this.deepResearch = getDeepResearch();
   }
 
   async researchTopic(query: string): Promise<ResearchResult> {
