@@ -1,4 +1,5 @@
-import { Graph, SearchResult, DeepResearch, DeepResearchConfig, ResearchSession, Node } from '../types/research';
+import { Graph, SearchResult } from '../types/research';
+import { initializeDeepResearch } from './deep-research-init';
 
 export interface ResearchResult {
   content: string;
@@ -19,63 +20,12 @@ export interface ResearchResult {
   };
 }
 
-// Mock implementation until deep-research module is properly linked
-class MockDeepResearch implements DeepResearch {
-  constructor(private config: DeepResearchConfig) {}
-
-  async createSession(query: string): Promise<ResearchSession> {
-    const session: ResearchSession = {
-      search: async () => ({
-        summary: `Research results for: ${query}`,
-        sources: ['source1', 'source2'],
-        confidence: 0.8,
-        relatedTopics: ['topic1', 'topic2']
-      }),
-      generateKnowledgeGraph: async () => ({
-        nodes: [
-          { id: '1', label: query, type: 'concept' as const },
-          { id: '2', label: 'Related concept', type: 'fact' as const }
-        ],
-        edges: [
-          { source: '1', target: '2', relationship: 'relates to' }
-        ]
-      }),
-      synthesizeResults: async () => ({
-        summary: `Synthesis for: ${query}`,
-        sources: ['source1', 'source2'],
-        confidence: 0.8,
-        relatedTopics: ['topic1', 'topic2']
-      })
-    };
-    return session;
-  }
-
-  async expandContext(topic: string, existingContext: string) {
-    return {
-      enhancedContext: `${existingContext}\nAdditional context for: ${topic}`
-    };
-  }
-
-  async suggestQueries(query: string) {
-    return {
-      queries: [
-        `More about ${query}`,
-        `${query} details`,
-        `${query} examples`
-      ]
-    };
-  }
-}
-
 export class ResearchService {
-  private deepResearch: DeepResearch;
+  private deepResearch: any; // Use 'any' temporarily
 
   constructor() {
-    this.deepResearch = new MockDeepResearch({
-      maxDepth: 3,
-      minConfidence: 0.7,
-      includeKnowledgeGraph: true
-    });
+    // Initialize the DeepResearch instance
+    this.deepResearch = initializeDeepResearch();
   }
 
   async researchTopic(query: string): Promise<ResearchResult> {
